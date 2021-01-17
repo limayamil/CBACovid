@@ -52,5 +52,14 @@ scrapeIt(url, {
     );
   } else {
     console.warn("La fecha no coincide, la Wiki está desactualizada.");
+    T.post(
+      "statuses/update",
+      {
+        status: "Aún no hay datos actualizados",
+      },
+      function (err, data, response) {
+        console.log(data);
+      }
+    );
   }
 });
