@@ -2,9 +2,10 @@ var Twit = require("twit");
 const scrapeIt = require("scrape-it");
 const url =
   "https://en.wikipedia.org/wiki/Template:COVID-19_pandemic_data/Argentina_medical_cases";
-const regExp1 = /\(([^)]+)\)/;
 const regExp2 = / *\([^)]*\) */g;
-let cantidadTotal;
+let cantidadTotalHoy;
+let cantidadTotalAyer;
+let nuevosHoy;
 let cantidadNuevos;
 let fechaExtraida;
 let fechaSistemaToday = new Date();
@@ -20,20 +21,29 @@ var T = new Twit({
 });
 
 scrapeIt(url, {
-  row:
+  filaHoy:
     "#mw-content-text > div.mw-parser-output > div.noresize > table > tbody > tr:nth-last-child(5) > td:nth-child(7)",
+  filaAyer:
+    "#mw-content-text > div.mw-parser-output > div.noresize > table > tbody > tr:nth-last-child(6) > td:nth-child(7)",
   fecha:
     "#mw-content-text > div.mw-parser-output > div.noresize > table > tbody > tr:nth-last-child(5) > th",
 }).then(({ data, response }) => {
   console.log(`Status Code: ${response.statusCode}`);
-  cantidadNuevos = regExp1.exec(JSON.stringify(data))[1];
-  //console.log(cantidadNuevos);
-  cantidadTotal = JSON.stringify(data.row);
-  cantidadTotal = cantidadTotal.replace(/\s*\(.*?\)\s*/g, "");
-  cantidadTotal = cantidadTotal.replace(/['"]+/g, "");
-  //console.log(cantidadTotal);
-  fechaExtraida = JSON.stringify(data.fecha);
-  fechaExtraida = fechaExtraida.replace(/\D/g, "");
+  cantidadTotalHoy = JSON.stringify(data.filaHoy)
+    .replace(/ *\([^)]*\) */g, "")
+    .replace(/['"]+/g, "");
+  cantidadTotalHoy = parseInt(cantidadTotalHoy);
+  console.log("Cantidad total de hoy: " + cantidadTotalHoy);
+
+  cantidadTotalAyer = JSON.stringify(data.filaAyer)
+    .replace(/ *\([^)]*\) */g, "")
+    .replace(/['"]+/g, "");
+  cantidadTotalAyer = parseInt(cantidadTotalAyer);
+  console.log("Cantidad total de ayer: " + cantidadTotalAyer);
+
+  nuevosHoy = cantidadTotalHoy - cantidadTotalAyer;
+  console.log("Los nuevos casos de hoy: " + nuevosHoy);
+
   //console.log(fechaExtraida);
   //console.log(fechaSistemaDia);
 
@@ -43,7 +53,7 @@ scrapeIt(url, {
       {
         status:
           "Hoy hubieron " +
-          cantidadNuevos +
+          nuevosHoy +
           " nuevos pacientes de COVID-19 en Córdoba, Argentina.",
       },
       function (err, data, response) {
